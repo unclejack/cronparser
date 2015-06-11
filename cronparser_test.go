@@ -1,6 +1,7 @@
 package cronparser
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -163,5 +164,92 @@ func TestCronParser(t *testing.T) {
 
 	if !reflect.DeepEqual(map[string]string{"foo": "bar", "bar": "baz"}, cp.Environment) {
 		t.Fatal("Parsing bad environment line yielded dirty environment")
+	}
+}
+
+func TestCronParserParseCronTab(t *testing.T) {
+	// FIXME replace this with a dir of crontabs to parse
+	crontab := `
+# /etc/crontab: system-wide crontab
+# Unlike any other crontab you don't have to run the crontab
+# command to install the new version when you edit this file
+# and files in /etc/cron.d. These files also have username fields,
+# that none of the other crontabs do.
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# m h dom mon dow user  command
+17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly
+25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+47 6    * * 7   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+52 6    1 * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+#
+*/1 * * * * root /usr/local/rtm/bin/rtm 9 > /dev/null 2> /dev/null
+`
+	cp := NewCronParser()
+
+	if err := cp.ParseCronTab(crontab); err != nil {
+		t.Fatal(err)
+	}
+
+	structtab := &CronParser{
+		Environment: map[string]string{
+			"SHELL": "/bin/sh",
+			"PATH":  "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
+		},
+		CronTab: []*CronEntry{
+			&CronEntry{
+				Minute:    &CronSection{Time: "17"},
+				Hour:      &CronSection{Time: "*"},
+				Day:       &CronSection{Time: "*"},
+				Month:     &CronSection{Time: "*"},
+				DayOfWeek: &CronSection{Time: "*"},
+				User:      "root",
+				Command:   "cd / && run-parts --report /etc/cron.hourly",
+			},
+			&CronEntry{
+				Minute:    &CronSection{Time: "25"},
+				Hour:      &CronSection{Time: "6"},
+				Day:       &CronSection{Time: "*"},
+				Month:     &CronSection{Time: "*"},
+				DayOfWeek: &CronSection{Time: "*"},
+				User:      "root",
+				Command:   "test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )",
+			},
+			&CronEntry{
+				Minute:    &CronSection{Time: "47"},
+				Hour:      &CronSection{Time: "6"},
+				Day:       &CronSection{Time: "*"},
+				Month:     &CronSection{Time: "*"},
+				DayOfWeek: &CronSection{Time: "7"},
+				User:      "root",
+				Command:   "test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )",
+			},
+			&CronEntry{
+				Minute:    &CronSection{Time: "52"},
+				Hour:      &CronSection{Time: "6"},
+				Day:       &CronSection{Time: "1"},
+				Month:     &CronSection{Time: "*"},
+				DayOfWeek: &CronSection{Time: "*"},
+				User:      "root",
+				Command:   "test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )",
+			},
+			&CronEntry{
+				Minute:    &CronSection{Time: "*", Interval: "1"},
+				Hour:      &CronSection{Time: "*"},
+				Day:       &CronSection{Time: "*"},
+				Month:     &CronSection{Time: "*"},
+				DayOfWeek: &CronSection{Time: "*"},
+				User:      "root",
+				Command:   "/usr/local/rtm/bin/rtm 9 > /dev/null 2> /dev/null",
+			},
+		},
+	}
+
+	if !reflect.DeepEqual(structtab, cp) {
+		content, _ := json.MarshalIndent(cp, "", "  ")
+		t.Log("JSON Dumping crontab:", string(content))
+		t.Fatalf("Crontab was not parsed properly")
 	}
 }

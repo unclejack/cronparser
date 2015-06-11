@@ -39,6 +39,21 @@ func NewCronParser() *CronParser {
 	}
 }
 
+func (cp *CronParser) ParseCronTab(body string) error {
+	for _, line := range strings.Split(body, "\n") {
+		line = strings.TrimLeft(line, " \t")
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		if err := cp.ParseLine(line); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (cp *CronParser) ParseLine(line string) error {
 	if err := cp.ParseEntry(line); err == nil {
 		return nil
