@@ -38,6 +38,11 @@ func parseSectionVar(cs **CronSection, str string) error {
 
 func parseLine(line string) (*CronEntry, error) {
 	strs := regexWhitespace.Split(line, 7)
+
+	if len(strs) != 7 {
+		return nil, fmt.Errorf("Not enough components found in cron line %q", line)
+	}
+
 	entry := &CronEntry{User: strs[5], Command: strs[6]}
 
 	if err := parseSectionVar(&entry.Minute, strs[0]); err != nil {
