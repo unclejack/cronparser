@@ -12,6 +12,11 @@ var (
 	regexWhitespace = regexp.MustCompile(`[ \t]+`)
 )
 
+type CronParser struct {
+	Environment map[string]string
+	CronTab     []*CronEntry
+}
+
 type CronSection struct {
 	Time     string
 	Interval string
@@ -25,6 +30,51 @@ type CronEntry struct {
 	DayOfWeek *CronSection
 	User      string
 	Command   string
+}
+
+func NewCronParser() *CronParser {
+	return &CronParser{
+		Environment: make(map[string]string),
+		CronTab:     make([]*CronEntry, 0),
+	}
+}
+
+func (cp *CronParser) ParseLine(line string) error {
+	if err := cp.ParseEntry(line); err == nil {
+		return nil
+	}
+
+	return cp.ParseEnvironment(line)
+}
+
+func (cp *CronParser) ParseEnvironment(line string) error {
+	key, value, err := parseEnvironment(line)
+	if err != nil {
+		return err
+	}
+
+	cp.Environment[key] = value
+	return nil
+}
+
+func (cp *CronParser) ParseEntry(line string) error {
+	ce, err := parseLine(line)
+	if err != nil {
+		return err
+	}
+
+	cp.CronTab = append(cp.CronTab, ce)
+	return nil
+}
+
+func parseEnvironment(line string) (string, string, error) {
+	parts := strings.SplitN(line, "=", 2)
+
+	if parts[0] == "" {
+		return "", "", fmt.Errorf("Could not locate key for environment line %q", line)
+	}
+
+	return parts[0], parts[1], nil
 }
 
 func parseSectionVar(cs **CronSection, str string) error {
