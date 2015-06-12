@@ -4,10 +4,18 @@
 //
 // Invoke cronparser like so:
 //
-//    func main() {
+//     package main
+//
+//     import (
+//      "fmt"
+//      "io/ioutil"
+//      "os"
+//     )
+//
+//     func main() {
 //      cp := NewCronParser()
 //      b, err := ioutil.ReadFile("/etc/crontab")
-//      if err != nil  {
+//      if err != nil {
 //        os.Exit(1)
 //      }
 //
@@ -19,11 +27,11 @@
 //        fmt.Println(key, value)
 //      }
 //
-//      for _, entry := cp.CronTab {
+//      for _, entry := range cp.CronTab {
 //        fmt.Println("Minute:", entry.Minute.Time, "/", entry.Minute.Interval)
 //        // do the rest at your leisure.
 //      }
-//    }
+//     }
 package cronparser
 
 import (
