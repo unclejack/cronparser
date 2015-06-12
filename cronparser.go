@@ -1,3 +1,29 @@
+// Package cronparser is a small parser used to turn cron lines, and
+// environment lines (therefore forming a crontab) into a set of data
+// structures.
+//
+// Invoke cronparser like so:
+//
+//    func main() {
+//      cp := NewCronParser()
+//      b, err := ioutil.ReadFile("/etc/crontab")
+//      if err != nil  {
+//        os.Exit(1)
+//      }
+//
+//      if err := cp.ParseCronTab(string(b)); err != nil {
+//        os.Exit(1)
+//      }
+//
+//      for key, value := range cp.Environment {
+//        fmt.Println(key, value)
+//      }
+//
+//      for _, entry := cp.CronTab {
+//        fmt.Println("Minute:", entry.Minute.Time, "/", entry.Minute.Interval)
+//        // do the rest at your leisure.
+//      }
+//    }
 package cronparser
 
 import (
@@ -12,16 +38,23 @@ var (
 	regexWhitespace = regexp.MustCompile(`[ \t]+`)
 )
 
+// CronParser is a struct representing a full crontab and its environment.
+// CronParser's functions typically modify the struct itself.
 type CronParser struct {
 	Environment map[string]string
 	CronTab     []*CronEntry
 }
 
+// CronSection identifies a unit of time in cron, and an optional interval if
+// Time is "*"
 type CronSection struct {
 	Time     string
 	Interval string
 }
 
+// CronEntry Represents a full line in a crontab, with each portion of time
+// delivered as CronSection structs. User and Command are also available in
+// this struct.
 type CronEntry struct {
 	Minute    *CronSection
 	Hour      *CronSection
@@ -32,6 +65,7 @@ type CronEntry struct {
 	Command   string
 }
 
+// NewCronParser constructs a new CronParser.
 func NewCronParser() *CronParser {
 	return &CronParser{
 		Environment: make(map[string]string),
@@ -39,6 +73,11 @@ func NewCronParser() *CronParser {
 	}
 }
 
+// ParseCronTab parses a whole body of text into indepedently sectioned
+// Environment and CronTab sections inside CronParser. Each crontab is made of
+// CronEntry structs which contain CronSection structs representing time
+// values, and strings for the user and command. An error is returned if
+// parsing fails.
 func (cp *CronParser) ParseCronTab(body string) error {
 	for _, line := range strings.Split(body, "\n") {
 		line = strings.TrimLeft(line, " \t")
@@ -54,6 +93,11 @@ func (cp *CronParser) ParseCronTab(body string) error {
 	return nil
 }
 
+// ParseLine parses a single crontab line into the CronParser. It self-selects
+// whether or not it is an environment line or a cron specification. It first
+// tries parsing a cron specification, and then tries to parse the environment,
+// and returns errors if both fail. Please see ParseEnvironment and ParseEntry
+// if you do not approve of this behavior.
 func (cp *CronParser) ParseLine(line string) error {
 	if err := cp.ParseEntry(line); err == nil {
 		return nil
@@ -62,6 +106,11 @@ func (cp *CronParser) ParseLine(line string) error {
 	return cp.ParseEnvironment(line)
 }
 
+// ParseEnvironment parses an environment line into the CronParser.
+// Environment lines are formed with a single key=value pair. They are
+// case-sensitive, and are treated like environment variables throughout the
+// code.  Note that this implementation does not support multiple key=value
+// pairs on a single line.
 func (cp *CronParser) ParseEnvironment(line string) error {
 	key, value, err := parseEnvironment(line)
 	if err != nil {
@@ -72,6 +121,7 @@ func (cp *CronParser) ParseEnvironment(line string) error {
 	return nil
 }
 
+// ParseEntry parses a single cron specification into the CronParser.
 func (cp *CronParser) ParseEntry(line string) error {
 	ce, err := parseLine(line)
 	if err != nil {
