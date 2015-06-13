@@ -33,9 +33,9 @@ func main() {
 		// do the rest at your leisure.
 	}
 
-  // or generate a real one
-
-  fmt.Println(cp.String())
+	// or generate a real one
+	
+	fmt.Println(cp.String())
 }
 ```
 
