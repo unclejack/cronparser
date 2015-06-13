@@ -167,10 +167,8 @@ func TestCronParser(t *testing.T) {
 	}
 }
 
-func TestCronParserParseCronTab(t *testing.T) {
-	// FIXME replace this with a dir of crontabs to parse
-	crontab := `
-# /etc/crontab: system-wide crontab
+// FIXME replace this with a dir of crontabs to parse
+var crontab = `# /etc/crontab: system-wide crontab
 # Unlike any other crontab you don't have to run the crontab
 # command to install the new version when you edit this file
 # and files in /etc/cron.d. These files also have username fields,
@@ -187,6 +185,16 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 #
 */1 * * * * root /usr/local/rtm/bin/rtm 9 > /dev/null 2> /dev/null
 `
+var compressedCrontab = `PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
+SHELL="/bin/sh"
+17 * * * * root cd / && run-parts --report /etc/cron.hourly
+25 6 * * * root test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+47 6 * * 7 root test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+52 6 1 * * root test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+*/1 * * * * root /usr/local/rtm/bin/rtm 9 > /dev/null 2> /dev/null
+`
+
+func TestCronParserParseCronTab(t *testing.T) {
 	cp := NewCronParser()
 
 	if err := cp.ParseCronTab(crontab); err != nil {
@@ -251,5 +259,16 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 		content, _ := json.MarshalIndent(cp, "", "  ")
 		t.Log("JSON Dumping crontab:", string(content))
 		t.Fatalf("Crontab was not parsed properly")
+	}
+}
+
+func TestGenerators(t *testing.T) {
+	cp := NewCronParser()
+	if err := cp.ParseCronTab(crontab); err != nil {
+		t.Fatal(err)
+	}
+
+	if cp.String() != compressedCrontab {
+		t.Fatal("Generated crontab did not fully represent parsed crontab")
 	}
 }
