@@ -23,6 +23,8 @@
 //        os.Exit(1)
 //      }
 //
+//      // Dump the crontab
+//
 //      for key, value := range cp.Environment {
 //        fmt.Println(key, value)
 //      }
@@ -31,6 +33,10 @@
 //        fmt.Println("Minute:", entry.Minute.Time, "/", entry.Minute.Interval)
 //        // do the rest at your leisure.
 //      }
+//
+//      // or generate a real one
+//
+//      fmt.Println(cp.String())
 //     }
 package cronparser
 
