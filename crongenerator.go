@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// String returns the entry as a string, in crontab format.
 func (ce *CronEntry) String() string {
 	items := []string{
 		ce.Minute.String(),
@@ -19,6 +20,7 @@ func (ce *CronEntry) String() string {
 	return strings.Join(items, " ")
 }
 
+// String returns the CronSection entry as a string, such as "1" or "*/12"
 func (cs *CronSection) String() string {
 	if cs.Interval != "" {
 		return fmt.Sprintf("%s/%s", cs.Time, cs.Interval)
@@ -27,6 +29,9 @@ func (cs *CronSection) String() string {
 	return fmt.Sprintf("%s", cs.Time)
 }
 
+// String returns a fully compatible crontab generated from the CronParser
+// type. Environment variables are stacked at the top of the crontab before any
+// entries.
 func (cp *CronParser) String() string {
 	retval := ""
 
