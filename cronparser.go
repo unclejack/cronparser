@@ -43,6 +43,7 @@ package cronparser
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -153,7 +154,12 @@ func parseEnvironment(line string) (string, string, error) {
 		return "", "", fmt.Errorf("Could not locate key for environment line %q", line)
 	}
 
-	return parts[0], parts[1], nil
+	str, err := strconv.Unquote(parts[1])
+	if err != nil {
+		str = parts[1]
+	}
+
+	return parts[0], str, nil
 }
 
 func parseSectionVar(cs **CronSection, str string) error {
