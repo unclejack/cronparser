@@ -203,8 +203,8 @@ func TestCronParserParseCronTab(t *testing.T) {
 
 	structtab := &CronParser{
 		Environment: map[string]string{
-			"SHELL": "\"/bin/sh\"",
-			"PATH":  "\"/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin\"",
+			"SHELL": "/bin/sh",
+			"PATH":  "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
 		},
 		CronTab: []*CronEntry{
 			&CronEntry{
