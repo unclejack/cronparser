@@ -174,8 +174,8 @@ var crontab = `# /etc/crontab: system-wide crontab
 # and files in /etc/cron.d. These files also have username fields,
 # that none of the other crontabs do.
 
-SHELL=/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+SHELL="/bin/sh"
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
 
 # m h dom mon dow user  command
 17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly
@@ -203,8 +203,8 @@ func TestCronParserParseCronTab(t *testing.T) {
 
 	structtab := &CronParser{
 		Environment: map[string]string{
-			"SHELL": "/bin/sh",
-			"PATH":  "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin",
+			"SHELL": "\"/bin/sh\"",
+			"PATH":  "\"/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin\"",
 		},
 		CronTab: []*CronEntry{
 			&CronEntry{

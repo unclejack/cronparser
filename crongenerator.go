@@ -78,7 +78,7 @@ func (cp *CronParser) String() string {
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		retval += fmt.Sprintf("%s=%q\n", key, cp.Environment[key])
+		retval += fmt.Sprintf("%s=%s\n", key, cp.Environment[key])
 	}
 
 	for _, entry := range cp.CronTab {
